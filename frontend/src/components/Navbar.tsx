@@ -1,4 +1,6 @@
 import { Link, useNavigate } from 'react-router'
+import { Can } from './Can'
+import { NotificationBell } from './NotificationBell'
 import { useAuth } from '../context/AuthContext'
 
 export function Navbar() {
@@ -21,6 +23,9 @@ export function Navbar() {
 			</nav>
 			<div className="account-area">
 				<span className="account-email">{user?.email}</span>
+				<Can permission="notification:read">
+					<NotificationBell />
+				</Can>
 				<button className="button button-quiet" type="button" onClick={handleLogout}>
 					Cerrar sesión
 				</button>
