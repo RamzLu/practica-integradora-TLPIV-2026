@@ -51,6 +51,7 @@ export function AdminUserPage() {
 								<td>
 									<Can permission="user:assign-role" fallback={<span>Sin permiso</span>}>
 										<select
+											className="admin-role-select"
 											aria-label={`Asignar rol a ${user.email}`}
 											value={user.role}
 											onChange={(event) => assignRole(user.id, event.currentTarget.value as Role)}

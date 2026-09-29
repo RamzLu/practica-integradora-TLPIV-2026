@@ -115,6 +115,8 @@ a { color: inherit; }
 .catalog-table th { padding: 12px 16px; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; }
 .catalog-table th:first-child, .catalog-table td:first-child { padding-left: 0; }
 .catalog-table td { padding: 17px 16px; border-top: 1px solid var(--line); color: var(--ink); font-size: 13px; vertical-align: middle; }
+.admin-role-select { width: min(190px, 100%); min-width: 150px; height: 38px; padding: 0 10px; border: 1px solid #cbd5ce; border-radius: 4px; background: var(--paper); color: var(--ink); font-size: 13px; }
+.admin-role-select:focus-visible { border-color: var(--green); outline: 3px solid var(--gold); outline-offset: 2px; }
 .book-title-link { display: block; width: fit-content; margin-bottom: 5px; color: var(--green); font-size: 14px; font-weight: 700; text-decoration: none; }
 .book-title-link:hover { color: var(--coral); text-decoration: underline; }
 .book-description { display: block; max-width: 580px; color: var(--muted); line-height: 1.45; }
