@@ -48,8 +48,13 @@ export function NotificationBell() {
 				{unreadCount > 0 && <span className="notification-count" aria-hidden="true">{unreadCount}</span>}
 			</summary>
 			<section className="notification-panel" aria-label="Bandeja de notificaciones">
-				<p className="notification-panel-title">Notificaciones</p>
-				<p className="notification-preview-label">Vista previa local</p>
+				<header className="notification-panel-heading">
+					<div>
+						<p className="notification-panel-title">Notificaciones</p>
+						<p className="notification-preview-label">Vista previa local</p>
+					</div>
+					<span className="notification-unread-summary">{unreadCount} sin leer</span>
+				</header>
 				{notifications.length === 0 ? (
 					<p>No tienes notificaciones.</p>
 				) : (
