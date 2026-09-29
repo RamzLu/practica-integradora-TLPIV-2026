@@ -20,6 +20,9 @@ export function Navbar() {
 			</Link>
 			<nav className="primary-nav" aria-label="Navegación principal">
 				<Link to="/libros">Catálogo</Link>
+				<Can permission="user:read">
+					<Link to="/admin/usuarios">Usuarios</Link>
+				</Can>
 			</nav>
 			<div className="account-area">
 				<span className="account-email">{user?.email}</span>

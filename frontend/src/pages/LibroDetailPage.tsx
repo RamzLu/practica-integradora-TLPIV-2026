@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { Link, useParams } from 'react-router'
+import { Can } from '../components/Can'
 import { librosDeVistaPrevia } from '../data/librosPreview'
 import type { LibroStatus } from '../types'
 
@@ -17,6 +19,7 @@ function formatDate(date: string) {
 }
 
 export function LibroDetailPage() {
+	const [isSubscribed, setIsSubscribed] = useState(false)
 	const { id } = useParams()
 	const libro = librosDeVistaPrevia.find((item) => item.id === id)
 
@@ -45,6 +48,22 @@ export function LibroDetailPage() {
 					{etiquetasEstado[libro.estado]}
 				</span>
 			</header>
+			<div className="catalog-toolbar">
+				<Can permission="subscription:create">
+					{isSubscribed ? (
+						<Can permission="subscription:delete">
+							<button className="button button-quiet" type="button" onClick={() => setIsSubscribed(false)}>
+								Dejar de seguir
+							</button>
+						</Can>
+					) : (
+						<button className="button button-primary" type="button" onClick={() => setIsSubscribed(true)}>
+							Seguir libro
+						</button>
+					)}
+				</Can>
+				{isSubscribed && <p className="catalog-description" role="status">Sigues este libro.</p>}
+			</div>
 			<dl className="book-metadata">
 				<div>
 					<dt>Creado</dt>
