@@ -2,6 +2,7 @@ import { Navigate, Outlet, Route, Routes } from 'react-router'
 import { Navbar } from './components/Navbar'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { LoginPage } from './pages/LoginPage'
+import { LibroFormPage } from './pages/LibroFormPage'
 import { LibroListPage } from './pages/LibroListPage'
 import { RegisterPage } from './pages/RegisterPage'
 import './App.css'
@@ -26,6 +27,7 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route index element={<Navigate to="/libros" replace />} />
           <Route path="/libros" element={<LibroListPage />} />
+          <Route path="/libros/nuevo" element={<LibroFormPage />} />
         </Route>
       </Route>
       <Route path="*" element={<Navigate to="/login" replace />} />

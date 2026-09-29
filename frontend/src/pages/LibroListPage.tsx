@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { Link } from 'react-router'
+import { Can } from '../components/Can'
 import type { Libro, LibroStatus } from '../types'
 
 const librosDeVistaPrevia: Libro[] = [
@@ -60,7 +62,12 @@ export function LibroListPage() {
 					<h1>Catálogo de libros</h1>
 					<p className="catalog-description">Consultá los títulos y su disponibilidad.</p>
 				</div>
-				<p className="catalog-count">{visibleBooks.length} resultados</p>
+				<div className="account-area">
+					<p className="catalog-count">{visibleBooks.length} resultados</p>
+					<Can permission="libro:create">
+						<Link className="button button-primary" to="/libros/nuevo">Nuevo libro</Link>
+					</Can>
+				</div>
 			</header>
 
 			<div className="catalog-toolbar">
