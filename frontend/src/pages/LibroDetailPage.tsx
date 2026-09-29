@@ -21,6 +21,7 @@ function formatDate(date: string) {
 export function LibroDetailPage() {
 	const [isSubscribed, setIsSubscribed] = useState(false)
 	const [previewStatuses, setPreviewStatuses] = useState<Partial<Record<string, LibroStatus>>>({})
+	const [deletedPreviewIds, setDeletedPreviewIds] = useState<string[]>([])
 	const { id } = useParams()
 	const libro = librosDeVistaPrevia.find((item) => item.id === id)
 
@@ -36,7 +37,26 @@ export function LibroDetailPage() {
 		)
 	}
 
+	if (deletedPreviewIds.includes(libro.id)) {
+		return (
+			<section className="catalog-page">
+				<div className="catalog-empty" role="status">
+					<p className="eyebrow">Vista previa</p>
+					<h1>Eliminación simulada</h1>
+					<p>El libro no se quitó del backend ni del catálogo compartido.</p>
+					<Link className="button button-quiet" to="/libros">Volver al catálogo</Link>
+				</div>
+			</section>
+		)
+	}
+
 	const currentStatus = previewStatuses[libro.id] ?? libro.estado
+	const handleDeletePreview = () => {
+		const confirmed = window.confirm(`¿Simular la eliminación de "${libro.titulo}"?`)
+		if (confirmed) {
+			setDeletedPreviewIds((current) => [...current, libro.id])
+		}
+	}
 
 	return (
 		<section className="catalog-page book-detail-page">
@@ -62,6 +82,11 @@ export function LibroDetailPage() {
 					<div className="detail-actions">
 						<Can permission="libro:update">
 							<Link className="button button-quiet" to={`/libros/${libro.id}/editar`}>Editar libro</Link>
+						</Can>
+						<Can permission="libro:delete">
+							<button className="button button-danger" type="button" onClick={handleDeletePreview}>
+								Eliminar libro
+							</button>
 						</Can>
 						<Can permission="libro:change-status">
 							<label className="catalog-filter">
