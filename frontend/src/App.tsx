@@ -31,6 +31,7 @@ export default function App() {
           <Route index element={<Navigate to="/libros" replace />} />
           <Route path="/libros" element={<LibroListPage />} />
           <Route path="/libros/nuevo" element={<LibroFormPage />} />
+          <Route path="/libros/:id/editar" element={<LibroFormPage />} />
           <Route path="/libros/:id" element={<LibroDetailPage />} />
           <Route
             path="/admin/usuarios"
