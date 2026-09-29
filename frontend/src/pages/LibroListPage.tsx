@@ -81,7 +81,9 @@ export function LibroListPage() {
 						{visibleBooks.map((book) => (
 							<tr key={book.id}>
 								<td>
-									<strong>{book.titulo}</strong>
+									<Link className="book-title-link" to={`/libros/${book.id}`}>
+										{book.titulo}
+									</Link>
 									<span className="book-description">{book.descripcion}</span>
 								</td>
 								<td>
