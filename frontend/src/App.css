@@ -67,6 +67,25 @@ a { color: inherit; }
 .book-two { height: 126px; background: var(--gold); }
 .book-three { height: 91px; background: #7ca98b; }
 
+.app-shell { min-height: 100vh; background: var(--canvas); }
+.site-header { min-height: 72px; display: flex; align-items: center; gap: 40px; padding: 0 max(24px, calc((100vw - 1120px) / 2)); border-bottom: 1px solid var(--line); background: var(--paper); }
+.primary-nav { display: flex; flex: 1; align-items: center; gap: 24px; }
+.primary-nav a { color: var(--green); font-size: 14px; font-weight: 700; text-decoration: none; }
+.primary-nav a:hover { color: var(--coral); }
+.account-area { display: flex; align-items: center; gap: 16px; }
+.account-email { color: var(--muted); font-size: 13px; }
+.button-quiet { min-height: 38px; padding: 0 12px; border: 1px solid var(--line); background: transparent; color: var(--green); font-size: 13px; }
+.button-quiet:hover { background: var(--canvas); }
+.page-content { width: min(1120px, calc(100% - 48px)); margin: 0 auto; padding: 42px 0 72px; }
+.catalog-page { min-height: 420px; }
+.catalog-heading { display: flex; align-items: end; justify-content: space-between; padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+.catalog-heading h1 { margin: 0 0 10px; color: var(--ink); font-family: Georgia, serif; font-size: 38px; font-weight: 500; line-height: 1.1; }
+.catalog-description { margin: 0; color: var(--muted); font-size: 14px; }
+.catalog-empty { display: grid; justify-items: center; max-width: 530px; margin: 76px auto 0; text-align: center; }
+.empty-mark { display: grid; width: 56px; aspect-ratio: 1; margin-bottom: 18px; place-items: center; border: 1px solid var(--line); border-radius: 50%; color: var(--green); font-family: Georgia, serif; font-size: 25px; }
+.catalog-empty h2 { margin: 0 0 8px; color: var(--ink); font-family: Georgia, serif; font-size: 24px; font-weight: 500; }
+.catalog-empty p { max-width: 390px; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.6; }
+
 @media (max-width: 760px) {
   .auth-layout { grid-template-columns: 1fr; }
   .auth-panel { padding: 32px 0 48px; }
@@ -74,6 +93,14 @@ a { color: inherit; }
   .auth-aside { min-height: 260px; padding: 38px 24px; }
   .aside-content h2 { max-width: 360px; font-size: 34px; }
   .book-stack { right: 8%; bottom: 9%; transform: scale(.7) rotate(-8deg); transform-origin: bottom right; }
+  .site-header { min-height: 64px; gap: 16px; padding: 0 16px; }
+  .primary-nav { display: none; }
+  .account-area { margin-left: auto; gap: 8px; }
+  .account-email { display: none; }
+  .button-quiet { font-size: 12px; }
+  .page-content { width: calc(100% - 32px); padding-top: 30px; }
+  .catalog-heading h1 { font-size: 32px; }
+  .catalog-empty { margin-top: 56px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
