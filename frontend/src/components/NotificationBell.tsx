@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { Notification } from '../types'
 
 const notificacionesDeVistaPrevia: Notification[] = [
@@ -26,7 +26,24 @@ function formatDate(date: string) {
 }
 
 export function NotificationBell() {
-	const [notifications, setNotifications] = useState(notificacionesDeVistaPrevia)
+	const [notifications, setNotifications] = useState<Notification[]>(() => {
+		const savedNotifications = window.localStorage.getItem('notification-preview')
+		if (!savedNotifications) {
+			return notificacionesDeVistaPrevia
+		}
+
+		try {
+			return JSON.parse(savedNotifications) as Notification[]
+		} catch {
+			window.localStorage.removeItem('notification-preview')
+			return notificacionesDeVistaPrevia
+		}
+	})
+
+	useEffect(() => {
+		window.localStorage.setItem('notification-preview', JSON.stringify(notifications))
+	}, [notifications])
+
 	const unreadCount = notifications.filter((notification) => !notification.isRead).length
 
 	const markAsRead = (id: string) => {
