@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { Can } from '../components/Can'
 import { librosDeVistaPrevia } from '../data/librosPreview'
@@ -24,6 +24,32 @@ export function LibroDetailPage() {
 	const [deletedPreviewIds, setDeletedPreviewIds] = useState<string[]>([])
 	const { id } = useParams()
 	const libro = librosDeVistaPrevia.find((item) => item.id === id)
+
+	useEffect(() => {
+		if (!id) return
+		const savedSubscription = window.localStorage.getItem(`libro-follow-${id}`)
+		if (savedSubscription === 'true') {
+			setIsSubscribed(true)
+		}
+
+		const savedStatuses = window.localStorage.getItem('libro-preview-statuses')
+		if (savedStatuses) {
+			try {
+				setPreviewStatuses(JSON.parse(savedStatuses) as Partial<Record<string, LibroStatus>>)
+			} catch {
+				window.localStorage.removeItem('libro-preview-statuses')
+			}
+		}
+	}, [id])
+
+	useEffect(() => {
+		if (!id) return
+		window.localStorage.setItem(`libro-follow-${id}`, String(isSubscribed))
+	}, [id, isSubscribed])
+
+	useEffect(() => {
+		window.localStorage.setItem('libro-preview-statuses', JSON.stringify(previewStatuses))
+	}, [previewStatuses])
 
 	if (!libro) {
 		return (
