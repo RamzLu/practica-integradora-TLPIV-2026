@@ -4,10 +4,25 @@ import { Can } from '../components/Can'
 import { librosDeVistaPrevia } from '../data/librosPreview'
 import type { LibroStatus } from '../types'
 
+const VALID_STATUSES: LibroStatus[] = ['DISPONIBLE', 'PRESTADO', 'EN_REPARACION']
+
 const etiquetasEstado: Record<LibroStatus, string> = {
 	DISPONIBLE: 'Disponible',
 	PRESTADO: 'Prestado',
 	EN_REPARACION: 'En reparación',
+}
+
+function getStoredStatusForBook(id: string | undefined, fallback: LibroStatus): LibroStatus {
+	if (!id || typeof window === 'undefined') {
+		return fallback
+	}
+
+	const savedStatus = window.localStorage.getItem(`libro-status-${id}`)
+	if (savedStatus && VALID_STATUSES.includes(savedStatus as LibroStatus)) {
+		return savedStatus as LibroStatus
+	}
+
+	return fallback
 }
 
 function formatDate(date: string) {
@@ -20,27 +35,17 @@ function formatDate(date: string) {
 
 export function LibroDetailPage() {
 	const [isSubscribed, setIsSubscribed] = useState(false)
-	const [previewStatuses, setPreviewStatuses] = useState<Partial<Record<string, LibroStatus>>>({})
 	const [deletedPreviewIds, setDeletedPreviewIds] = useState<string[]>([])
 	const { id } = useParams()
 	const libro = librosDeVistaPrevia.find((item) => item.id === id)
+	const [currentStatus, setCurrentStatus] = useState<LibroStatus>(() => getStoredStatusForBook(id, libro?.estado ?? 'DISPONIBLE'))
 
 	useEffect(() => {
 		if (!id) return
 		const savedSubscription = window.localStorage.getItem(`libro-follow-${id}`)
-		if (savedSubscription === 'true') {
-			setIsSubscribed(true)
-		}
-
-		const savedStatuses = window.localStorage.getItem('libro-preview-statuses')
-		if (savedStatuses) {
-			try {
-				setPreviewStatuses(JSON.parse(savedStatuses) as Partial<Record<string, LibroStatus>>)
-			} catch {
-				window.localStorage.removeItem('libro-preview-statuses')
-			}
-		}
-	}, [id])
+		setIsSubscribed(savedSubscription === 'true')
+		setCurrentStatus(getStoredStatusForBook(id, libro?.estado ?? 'DISPONIBLE'))
+	}, [id, libro])
 
 	useEffect(() => {
 		if (!id) return
@@ -48,8 +53,9 @@ export function LibroDetailPage() {
 	}, [id, isSubscribed])
 
 	useEffect(() => {
-		window.localStorage.setItem('libro-preview-statuses', JSON.stringify(previewStatuses))
-	}, [previewStatuses])
+		if (!id) return
+		window.localStorage.setItem(`libro-status-${id}`, currentStatus)
+	}, [id, currentStatus])
 
 	if (!libro) {
 		return (
@@ -76,7 +82,6 @@ export function LibroDetailPage() {
 		)
 	}
 
-	const currentStatus = previewStatuses[libro.id] ?? libro.estado
 	const handleDeletePreview = () => {
 		const confirmed = window.confirm(`¿Simular la eliminación de "${libro.titulo}"?`)
 		if (confirmed) {
@@ -119,10 +124,7 @@ export function LibroDetailPage() {
 								<span>Cambiar estado</span>
 								<select
 									value={currentStatus}
-									onChange={(event) => setPreviewStatuses((current) => ({
-										...current,
-										[libro.id]: event.currentTarget.value as LibroStatus,
-									}))}
+									onChange={(event) => setCurrentStatus(event.currentTarget.value as LibroStatus)}
 								>
 									<option value="DISPONIBLE">Disponible</option>
 									<option value="PRESTADO">Prestado</option>

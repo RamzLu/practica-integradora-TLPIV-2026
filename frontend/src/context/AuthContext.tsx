@@ -1,7 +1,6 @@
-import { createContext, useContext, useState, useEffect} from 'react';
-import type {ReactNode} from 'react' 
-import type { User, Role } from '../types';
-// import { apiClient } from '../api/client';
+import { createContext, useContext, useState, useEffect } from 'react'
+import type { ReactNode } from 'react'
+import type { User, Role } from '../types'
 
 // definimos que datos y funciones va a exponer y compartir nuestro contexto
 interface AuthContextType {
@@ -38,27 +37,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(localStorage.getItem('jwt_token'));
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // al cargar la app, intentamos recuperar la sesion si hay un token guardado
   useEffect(() => {
     const initAuth = async () => {
       const storedToken = localStorage.getItem('jwt_token');
       if (storedToken) {
         try {
-          // todo por ahora, simulamos o leemos del storage si guardamos neustro usuario
           const storedUser = localStorage.getItem('user_data');
           if (storedUser) {
-            setUser(JSON.parse(storedUser));
+            setUser(JSON.parse(storedUser) as User);
           }
         } catch (error) {
-          console.error("Sesión inválida o expirada", error);
-          logout();
+          console.error('Sesión inválida o expirada', error)
+          logout()
         }
       }
-      setIsLoading(false);
-    };
+      setIsLoading(false)
+    }
 
-    initAuth();
-  }, []);
+    initAuth()
+  }, [])
 
   // iniciar sesión (guarda token y usuario en estado y localStorage)
   const login = (newToken: string, userData: User) => {

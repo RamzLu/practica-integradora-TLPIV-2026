@@ -1,13 +1,27 @@
 import { useState } from 'react'
 import type { SubmitEvent } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate } from 'react-router'
+import { login as loginRequest } from '../api/auth.api'
+import { useAuth } from '../context/AuthContext'
 
 export function LoginPage() {
 	const [message, setMessage] = useState('')
+	const navigate = useNavigate()
+	const { login } = useAuth()
 
-	const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
+	const handleSubmit = async (event: SubmitEvent<HTMLFormElement>) => {
 		event.preventDefault()
-		setMessage('El formulario está listo; falta conectarlo al servicio de autenticación.')
+		const formData = new FormData(event.currentTarget)
+		const email = String(formData.get('email') ?? '').trim()
+		const password = String(formData.get('password') ?? '')
+
+		try {
+			const response = await loginRequest(email, password)
+			login(response.token, response.user)
+			navigate('/libros', { replace: true })
+		} catch (error) {
+			setMessage(error instanceof Error ? error.message : 'No se pudo iniciar sesión.')
+		}
 	}
 
 	return (
