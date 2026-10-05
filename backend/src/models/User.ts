@@ -3,7 +3,7 @@ import mongoose, {Schema, Document} from "mongoose";
 export interface IUser extends Document {
     email: string;
     password: string;
-    role: string;
+    role: mongoose.Types.ObjectId;
 }
 
 const UserSchema: Schema = new Schema(
@@ -18,10 +18,11 @@ const UserSchema: Schema = new Schema(
             type: String, 
             required: true 
         },
+        //aca se cambio porque se agregó el modelo role que se encarga de manejar los roles y permisos de los usuarios
         role: { 
-            type: String, 
-            enum: ['admin', 'operador', 'usuario'], 
-            default: 'usuario' 
+            type: Schema.Types.ObjectId, 
+            ref: 'Role', 
+            required: true 
         }
     },
     {
