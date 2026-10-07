@@ -10,7 +10,8 @@ const RoleSchema: Schema = new Schema(
         name: { 
             type: String, 
             required: true, 
-            unique: true 
+            unique: true,
+            enum: ['admin', 'operador', 'usuario']
         },
         permissions: { 
             type: [String], 
