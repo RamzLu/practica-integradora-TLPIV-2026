@@ -1,4 +1,4 @@
-import type { Request, Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import { BookService } from '../services/BookService.js';
 import { BookStatus } from '../models/Book.js';
 
@@ -6,18 +6,17 @@ export class BookController {
     constructor(private readonly bookService: BookService) {}
 
     // listar todos los libros
-    getAll = async (req: Request, res: Response): Promise<void> => {
+    getAll = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const books = await this.bookService.getAll();
             res.status(200).json(books);
         } catch (error) {
-            console.error(error);
-            res.status(500).json({ message: 'Error interno del servidor' });
+            next(error);
         }
     };
 
     // obtener un libro por id
-    getById = async (req: Request, res: Response): Promise<void> => {
+    getById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params;
             const book = await this.bookService.getById(id as string);
@@ -27,13 +26,12 @@ export class BookController {
             }
             res.status(200).json(book);
         } catch (error) {
-            console.error(error);
-            res.status(500).json({ message: 'Error interno del servidor' });
+            next(error);
         }
     };
 
     // crear un libro
-    create = async (req: Request, res: Response): Promise<void> => {
+    create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { title, description } = req.body;
             if (!title || !description) {
@@ -43,13 +41,12 @@ export class BookController {
             const newBook = await this.bookService.create(req.body);
             res.status(201).json(newBook);
         } catch (error) {
-            console.error(error);
-            res.status(500).json({ message: 'Error interno del servidor' });
+            next(error);
         }
     };
 
     // actualizar un libro
-    update = async (req: Request, res: Response): Promise<void> => {
+    update = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params;
             const updatedBook = await this.bookService.update(id as string, req.body);
@@ -59,13 +56,12 @@ export class BookController {
             }
             res.status(200).json(updatedBook);
         } catch (error) {
-            console.error(error);
-            res.status(500).json({ message: 'Error interno del servidor' });
+            next(error);
         }
     };
 
     // cambiar el estado de un libro
-    changeStatus = async (req: Request, res: Response): Promise<void> => {
+    changeStatus = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params;
             const { status } = req.body;
@@ -85,13 +81,12 @@ export class BookController {
             }
             res.status(200).json(updatedBook);
         } catch (error) {
-            console.error(error);
-            res.status(500).json({ message: 'Error interno del servidor' });
+            next(error);
         }
     };
 
     // eliminar un libro
-    delete = async (req: Request, res: Response): Promise<void> => {
+    delete = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params;
             const deleted = await this.bookService.delete(id as string);
@@ -101,8 +96,7 @@ export class BookController {
             }
             res.status(204).send();
         } catch (error) {
-            console.error(error);
-            res.status(500).json({ message: 'Error interno del servidor' });
+            next(error);
         }
     };
 }

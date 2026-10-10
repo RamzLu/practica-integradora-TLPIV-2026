@@ -11,6 +11,7 @@ import { RoleRepository } from './repositories/RoleRepository.js';
 import { AuthService } from './services/AuthService.js';
 import { AuthController } from './controllers/AuthController.js';
 import { createAuthRoutes } from './routes/AuthRoute.js';
+import { errorHandler } from './middlewares/errorHandler.js';
 
 async function start() {
     const db = DatabaseConnection.getInstance()
@@ -31,9 +32,9 @@ const roleRepository = new RoleRepository();
 const authService = new AuthService(userRepository, roleRepository, jwtSecret);
 const authController = new AuthController(authService);
 
-
  app.use('/api/books', createBookRoutes(bookController));
  app.use('/api/auth', createAuthRoutes(authController));
+ app.use(errorHandler);
 
     const port = Number(process.env.API_PORT) || 3000;
     app.listen(port, () => {
