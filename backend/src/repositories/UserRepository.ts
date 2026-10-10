@@ -3,7 +3,7 @@ import type { IUserRepository } from './interfaces/IUserRepository.js';
 
 export class UserRepository implements IUserRepository {
     async findByEmail(email: string): Promise<IUser | null> {
-        return await User.findOne({ email });
+        return await User.findOne({ email }).populate('role');
     }
 
     async findById(id: string): Promise<IUser | null> {
