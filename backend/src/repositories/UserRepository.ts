@@ -7,11 +7,11 @@ export class UserRepository implements IUserRepository {
     }
 
     async findById(id: string): Promise<IUser | null> {
-        return await User.findById(id);
+        return await User.findById(id).select('-password').populate('role');
     }
 
     async findAll(): Promise<IUser[]> {
-        return await User.find();
+        return await User.find().select('-password').populate('role');
     }
 
     async create(userData: Partial<IUser>): Promise<IUser> {
@@ -20,6 +20,6 @@ export class UserRepository implements IUserRepository {
     }
 
     async updateRole(id: string, role: string): Promise<IUser | null> {
-        return await User.findByIdAndUpdate(id, { role }, { new: true });
+        return await User.findByIdAndUpdate(id, { role }, { new: true }).select('-password').populate('role');
     }
 }
