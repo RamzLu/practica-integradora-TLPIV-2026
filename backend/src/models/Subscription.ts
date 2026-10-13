@@ -25,4 +25,6 @@ const SubscriptionSchema: Schema = new Schema(
     }
 );
 
+// Garantiza que la combinación de usuario y libro sea única en la base de datos
+SubscriptionSchema.index({ user: 1, book: 1 }, { unique: true });
 export const Subscription = mongoose.model<ISubscription>('Subscription', SubscriptionSchema);
