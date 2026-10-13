@@ -23,7 +23,25 @@ export class BookService {
     }
 
     async update(id: string, bookData: Partial<IBook>): Promise<IBook | null> {
-        return await this.bookRepository.update(id, bookData);
+        // el estado se separa porque su cambio tiene que notificar a los suscriptores
+        const { status, ...fields } = bookData;
+
+        let result: IBook | null;
+        if (Object.keys(fields).length > 0) {
+            result = await this.bookRepository.update(id, fields);
+        } else {
+            result = await this.bookRepository.findById(id);
+        }
+        if (!result) {
+            return null;
+        }
+
+        // si cambió el estado, se usa changeStatus para disparar el observer
+        if (status !== undefined && status !== result.status) {
+            return await this.changeStatus(id, status as BookStatus);
+        }
+
+        return result;
     }
 
     async delete(id: string): Promise<boolean> {

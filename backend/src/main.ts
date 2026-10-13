@@ -71,4 +71,7 @@ async function start() {
     });
 }
 
-start()
+start().catch((err) => {
+    console.error('Error al iniciar el servidor:', err)
+    process.exit(1)
+})

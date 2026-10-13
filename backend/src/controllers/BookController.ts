@@ -1,6 +1,11 @@
 import type { NextFunction, Request, Response } from 'express';
+import mongoose from 'mongoose';
 import { BookService } from '../services/BookService.js';
 import { BookStatus } from '../models/Book.js';
+
+function isValidId(id: unknown): boolean {
+    return typeof id === 'string' && mongoose.Types.ObjectId.isValid(id);
+}
 
 export class BookController {
     constructor(private readonly bookService: BookService) {}
@@ -19,6 +24,10 @@ export class BookController {
     getById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params;
+            if (!isValidId(id)) {
+                res.status(404).json({ message: 'Libro no encontrado' });
+                return;
+            }
             const book = await this.bookService.getById(id as string);
             if (!book) {
                 res.status(404).json({ message: 'Libro no encontrado' });
@@ -49,6 +58,10 @@ export class BookController {
     update = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params;
+            if (!isValidId(id)) {
+                res.status(404).json({ message: 'Libro no encontrado' });
+                return;
+            }
             const updatedBook = await this.bookService.update(id as string, req.body);
             if (!updatedBook) {
                 res.status(404).json({ message: 'Libro no encontrado' });
@@ -65,6 +78,11 @@ export class BookController {
         try {
             const { id } = req.params;
             const { status } = req.body;
+
+            if (!isValidId(id)) {
+                res.status(404).json({ message: 'Libro no encontrado' });
+                return;
+            }
 
             // validar que sea un valor real del enum, no solo que exista
             if (!Object.values(BookStatus).includes(status)) {
@@ -89,6 +107,10 @@ export class BookController {
     delete = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { id } = req.params;
+            if (!isValidId(id)) {
+                res.status(404).json({ message: 'Libro no encontrado' });
+                return;
+            }
             const deleted = await this.bookService.delete(id as string);
             if (!deleted) {
                 res.status(404).json({ message: 'Libro no encontrado' });

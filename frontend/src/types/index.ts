@@ -30,6 +30,8 @@ export interface Subscription {
 export interface Notification {
   id: string;
   userId: string;
+  bookId?: string;
+  bookTitle?: string; // viene del libro asociado (populate en el backend)
   message: string;
   isRead: boolean;
   createdAt: string;

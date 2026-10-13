@@ -1,74 +1,105 @@
-import { librosDeVistaPrevia } from '../data/librosPreview'
-import type { Libro, LibroStatus } from '../types'
+import type { LibroStatus } from '../types'
 
-const STORAGE_KEY = 'libros-preview-cache'
+const API_URL = 'http://localhost:3000/api'
 
-function readCache(): Libro[] {
-	const cached = window.localStorage.getItem(STORAGE_KEY)
-	if (!cached) return [...librosDeVistaPrevia]
-
-	try {
-		return JSON.parse(cached) as Libro[]
-	} catch {
-		window.localStorage.removeItem(STORAGE_KEY)
-		return [...librosDeVistaPrevia]
-	}
+export interface Libro {
+    id: string
+    titulo: string
+    descripcion: string
+    estado: LibroStatus
+    createdAt: string
+    updatedAt: string
 }
 
-function saveCache(books: Libro[]) {
-	window.localStorage.setItem(STORAGE_KEY, JSON.stringify(books))
+type LibroInput = { titulo: string; descripcion: string; estado: LibroStatus }
+
+function getHeaders() {
+    const token = localStorage.getItem('jwt_token')
+    return {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    }
 }
 
-async function wait<T>(value: T): Promise<T> {
-	return new Promise((resolve) => {
-		window.setTimeout(() => resolve(value), 200)
-	})
+// el backend usa title/description/status
+function toBackend(data: Partial<LibroInput>) {
+    return {
+        ...(data.titulo !== undefined ? { title: data.titulo } : {}),
+        ...(data.descripcion !== undefined ? { description: data.descripcion } : {}),
+        ...(data.estado !== undefined ? { status: data.estado } : {})
+    }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function normalizeLibro(raw: any): Libro {
+    const now = new Date().toISOString()
+    return {
+        id: String(raw._id ?? raw.id),
+        titulo: raw.title ?? raw.titulo ?? '',
+        descripcion: raw.description ?? raw.descripcion ?? '',
+        estado: (raw.status ?? raw.estado ?? 'DISPONIBLE') as LibroStatus,
+        createdAt: raw.createdAt ?? now,
+        updatedAt: raw.updatedAt ?? now
+    }
+}
+
+async function errorMessage(response: Response, fallback: string) {
+    try {
+        const body = await response.json()
+        return body.message || fallback
+    } catch {
+        return fallback
+    }
 }
 
 export async function getLibros(): Promise<Libro[]> {
-	return wait(readCache())
+    const response = await fetch(`${API_URL}/books`, { headers: getHeaders() })
+    if (!response.ok) throw new Error(await errorMessage(response, 'Error al cargar los libros'))
+    const data = await response.json()
+    return (Array.isArray(data) ? data : []).map(normalizeLibro)
 }
 
-export async function getLibroById(id: string): Promise<Libro | undefined> {
-	return wait(readCache().find((book) => book.id === id))
+export async function getLibro(id: string): Promise<Libro> {
+    const response = await fetch(`${API_URL}/books/${id}`, { headers: getHeaders() })
+    if (!response.ok) throw new Error(await errorMessage(response, 'Libro no encontrado'))
+    return normalizeLibro(await response.json())
 }
 
-export async function createLibro(payload: Omit<Libro, 'id' | 'createdAt' | 'updatedAt'>): Promise<Libro> {
-	const books = readCache()
-	const next: Libro = {
-		id: `libro-${Date.now()}`,
-		...payload,
-		createdAt: new Date().toISOString(),
-		updatedAt: new Date().toISOString(),
-	}
-	const updated = [next, ...books]
-	saveCache(updated)
-	return wait(next)
+export async function createLibro(data: LibroInput) {
+    const response = await fetch(`${API_URL}/books`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify(toBackend(data))
+    })
+    if (!response.ok) throw new Error(await errorMessage(response, 'Error al crear el libro'))
+    return response.json()
 }
 
-export async function updateLibro(id: string, payload: Partial<Libro>): Promise<Libro> {
-	const books = readCache()
-	const index = books.findIndex((book) => book.id === id)
-	if (index === -1) {
-		throw new Error('Libro no encontrado.')
-	}
-
-	const updated = {
-		...books[index],
-		...payload,
-		updatedAt: new Date().toISOString(),
-	} satisfies Libro
-	books[index] = updated
-	saveCache(books)
-	return wait(updated)
+export async function updateLibro(id: string, data: Partial<LibroInput>) {
+    const response = await fetch(`${API_URL}/books/${id}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(toBackend(data))
+    })
+    if (!response.ok) throw new Error(await errorMessage(response, 'Error al actualizar el libro'))
+    return response.json()
 }
 
-export async function deleteLibro(id: string): Promise<void> {
-	const books = readCache().filter((book) => book.id !== id)
-	saveCache(books)
-	return wait(undefined)
+export async function subscribeLibro(bookId: string) {
+    const response = await fetch(`${API_URL}/subscriptions`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ bookId })
+    })
+    if (!response.ok) throw new Error(await errorMessage(response, 'Error al suscribirse'))
+    return response.json()
 }
 
-export async function changeLibroStatus(id: string, estado: LibroStatus): Promise<Libro> {
-	return updateLibro(id, { estado })
+export async function unsubscribeLibro(bookId: string) {
+    const response = await fetch(`${API_URL}/subscriptions/${bookId}`, {
+        method: 'DELETE',
+        headers: getHeaders()
+    })
+    if (!response.ok) throw new Error(await errorMessage(response, 'Error al cancelar suscripción'))
+    return response.status === 204 ? null : response.json()
 }

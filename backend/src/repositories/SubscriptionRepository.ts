@@ -3,6 +3,13 @@ import type { ISubscriptionRepository } from './interfaces/ISubscriptionReposito
 
 export class SubscriptionRepository implements ISubscriptionRepository {
     async create(userId: string, bookId: string): Promise<ISubscription> {
+        // si el usuario ya sigue el libro, se devuelve la suscripción existente
+        // (el índice único user + book no permite duplicados)
+        const existing = await Subscription.findOne({ user: userId, book: bookId });
+        if (existing) {
+            return existing;
+        }
+
         const subscription = new Subscription({ user: userId, book: bookId });
         return await subscription.save();
     }

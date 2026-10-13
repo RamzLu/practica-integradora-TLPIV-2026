@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 import { Can } from '../components/Can'
-import { librosDeVistaPrevia } from '../data/librosPreview'
+import { getLibros } from '../api/libro.api'
+import type { Libro } from '../api/libro.api'
 import type { LibroStatus } from '../types'
 
 const etiquetasEstado: Record<LibroStatus, string> = {
@@ -19,10 +20,31 @@ function formatDate(date: string) {
 }
 
 export function LibroListPage() {
+	const [libros, setLibros] = useState<Libro[]>([])
+	const [loading, setLoading] = useState(true)
+	const [error, setError] = useState('')
 	const [query, setQuery] = useState('')
 	const [statusFilter, setStatusFilter] = useState<LibroStatus | 'TODOS'>('TODOS')
+
+	useEffect(() => {
+		let cancelled = false
+		getLibros()
+			.then((data) => {
+				if (!cancelled) setLibros(data)
+			})
+			.catch((err) => {
+				if (!cancelled) setError(err instanceof Error ? err.message : 'Error al cargar los libros')
+			})
+			.finally(() => {
+				if (!cancelled) setLoading(false)
+			})
+		return () => {
+			cancelled = true
+		}
+	}, [])
+
 	const normalizedQuery = query.trim().toLocaleLowerCase('es')
-	const visibleBooks = librosDeVistaPrevia.filter((book) => {
+	const visibleBooks = libros.filter((book) => {
 		const matchesQuery = `${book.titulo} ${book.descripcion}`.toLocaleLowerCase('es').includes(normalizedQuery)
 		const matchesStatus = statusFilter === 'TODOS' || book.estado === statusFilter
 		return matchesQuery && matchesStatus
@@ -68,38 +90,43 @@ export function LibroListPage() {
 				</label>
 			</div>
 
-			<div className="catalog-table-wrap">
-				<table className="catalog-table">
-					<thead>
-						<tr>
-							<th scope="col">Libro</th>
-							<th scope="col">Estado</th>
-							<th scope="col">Actualizado</th>
-						</tr>
-					</thead>
-					<tbody>
-						{visibleBooks.map((book) => (
-							<tr key={book.id}>
-								<td>
-									<Link className="book-title-link" to={`/libros/${book.id}`}>
-										{book.titulo}
-									</Link>
-									<span className="book-description">{book.descripcion}</span>
-								</td>
-								<td>
-									<span className={`status-badge status-${book.estado.toLowerCase()}`}>
-										{etiquetasEstado[book.estado]}
-									</span>
-								</td>
-								<td className="book-date">{formatDate(book.updatedAt)}</td>
+			{loading && <p role="status">Cargando libros...</p>}
+			{error && <p className="form-message" role="alert">{error}</p>}
+
+			{!loading && !error && (
+				<div className="catalog-table-wrap">
+					<table className="catalog-table">
+						<thead>
+							<tr>
+								<th scope="col">Libro</th>
+								<th scope="col">Estado</th>
+								<th scope="col">Actualizado</th>
 							</tr>
-						))}
-					</tbody>
-				</table>
-				{visibleBooks.length === 0 && (
-					<p className="catalog-no-results" role="status">No hay libros que coincidan con la búsqueda.</p>
-				)}
-			</div>
+						</thead>
+						<tbody>
+							{visibleBooks.map((book) => (
+								<tr key={book.id}>
+									<td>
+										<Link className="book-title-link" to={`/libros/${book.id}`}>
+											{book.titulo}
+										</Link>
+										<span className="book-description">{book.descripcion}</span>
+									</td>
+									<td>
+										<span className={`status-badge status-${book.estado.toLowerCase()}`}>
+											{etiquetasEstado[book.estado]}
+										</span>
+									</td>
+									<td className="book-date">{formatDate(book.updatedAt)}</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+					{visibleBooks.length === 0 && (
+						<p className="catalog-no-results" role="status">No hay libros que coincidan con la búsqueda.</p>
+					)}
+				</div>
+			)}
 		</section>
 	)
 }

@@ -1,22 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { getNotifications, markNotificationAsRead } from '../api/notifications.api'
+import { useAuth } from '../context/AuthContext'
 import type { Notification } from '../types'
 
-const notificacionesDeVistaPrevia: Notification[] = [
-	{
-		id: 'notificacion-1',
-		userId: 'usuario-demo',
-		message: 'El mapa de las mareas está disponible.',
-		isRead: false,
-		createdAt: '2026-09-25T15:30:00.000Z',
-	},
-	{
-		id: 'notificacion-2',
-		userId: 'usuario-demo',
-		message: 'La casa de los relojes cambió de estado.',
-		isRead: true,
-		createdAt: '2026-09-24T11:00:00.000Z',
-	},
-]
+// cada cuánto se vuelve a pedir las notificaciones al backend
+const REFRESH_INTERVAL_MS = 30000
 
 function formatDate(date: string) {
 	return new Intl.DateTimeFormat('es-AR', {
@@ -26,34 +14,53 @@ function formatDate(date: string) {
 }
 
 export function NotificationBell() {
-	const [notifications, setNotifications] = useState<Notification[]>(() => {
-		const savedNotifications = window.localStorage.getItem('notification-preview')
-		if (!savedNotifications) {
-			return notificacionesDeVistaPrevia
-		}
+	const { user } = useAuth()
+	const [notifications, setNotifications] = useState<Notification[]>([])
 
+	const loadNotifications = useCallback(async () => {
 		try {
-			return JSON.parse(savedNotifications) as Notification[]
-		} catch {
-			window.localStorage.removeItem('notification-preview')
-			return notificacionesDeVistaPrevia
+			const data = await getNotifications()
+			setNotifications(data)
+		} catch (error) {
+			console.error('Error al cargar las notificaciones:', error)
 		}
-	})
+	}, [])
 
+	// carga al iniciar sesión (o al cambiar de usuario) y se actualiza cada tanto
 	useEffect(() => {
-		window.localStorage.setItem('notification-preview', JSON.stringify(notifications))
-	}, [notifications])
+		if (!user) {
+			setNotifications([])
+			return
+		}
+
+		loadNotifications()
+		const interval = window.setInterval(loadNotifications, REFRESH_INTERVAL_MS)
+		return () => window.clearInterval(interval)
+	}, [user?.id, loadNotifications])
 
 	const unreadCount = notifications.filter((notification) => !notification.isRead).length
 
-	const markAsRead = (id: string) => {
-		setNotifications((current) => current.map((notification) => (
-			notification.id === id ? { ...notification, isRead: true } : notification
-		)))
+	const markAsRead = async (id: string) => {
+		try {
+			await markNotificationAsRead(id)
+			setNotifications((current) => current.map((notification) => (
+				notification.id === id ? { ...notification, isRead: true } : notification
+			)))
+		} catch (error) {
+			console.error('Error al marcar la notificación como leída:', error)
+		}
 	}
 
 	return (
-		<details className="notification-menu">
+		<details
+			className="notification-menu"
+			onToggle={(event) => {
+				// al abrir la campanita se refresca la lista
+				if (event.currentTarget.open) {
+					loadNotifications()
+				}
+			}}
+		>
 			<summary
 				className="notification-trigger"
 				aria-label={unreadCount > 0 ? `Notificaciones, ${unreadCount} sin leer` : 'Notificaciones'}
@@ -68,7 +75,6 @@ export function NotificationBell() {
 				<header className="notification-panel-heading">
 					<div>
 						<p className="notification-panel-title">Notificaciones</p>
-						<p className="notification-preview-label">Vista previa local</p>
 					</div>
 					<span className="notification-unread-summary">{unreadCount} sin leer</span>
 				</header>
@@ -78,7 +84,10 @@ export function NotificationBell() {
 					<ul className="notification-list">
 						{notifications.map((notification) => (
 							<li className={notification.isRead ? 'notification-item' : 'notification-item is-unread'} key={notification.id}>
-								<p>{notification.message}</p>
+								<p>
+									{notification.bookTitle ? `${notification.bookTitle}: ` : ''}
+									{notification.message}
+								</p>
 								<time dateTime={notification.createdAt}>{formatDate(notification.createdAt)}</time>
 								{!notification.isRead && (
 									<button className="notification-read-button" type="button" onClick={() => markAsRead(notification.id)}>
